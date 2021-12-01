@@ -1,10 +1,7 @@
 defmodule Aoc2021.Day1 do
-  def part1 do
-    File.read!("inputs/day1.txt")
-    |> String.split("\n")
-    |> Enum.reduce([999, 0], fn x, [last, count] ->
-      current = elem(Integer.parse(x), 0)
-
+  def count_increases(measurements) do
+    measurements
+    |> Enum.reduce([:infinity, 0], fn current, [last, count] ->
       if current > last do
         [current, count + 1]
       else
@@ -12,7 +9,13 @@ defmodule Aoc2021.Day1 do
       end
     end)
     |> Enum.at(-1)
-    |> IO.puts()
+  end
+
+  def part1 do
+    File.read!("inputs/day1.txt")
+    |> String.split("\n")
+    |> Enum.map(&(Integer.parse(&1) |> elem(0)))
+    |> count_increases()
   end
 
   def part2 do
@@ -21,25 +24,15 @@ defmodule Aoc2021.Day1 do
       |> String.split("\n")
       |> Enum.map(&(Integer.parse(&1) |> elem(0)))
 
-    count = length(measurements)
-
-    0..(count - 3)
+    0..(length(measurements) - 3)
     |> Enum.map(fn window_start ->
-      Enum.sum(Enum.slice(measurements, window_start..(window_start + 2)))
+      Enum.slice(measurements, window_start..(window_start + 2))
+      |> Enum.sum()
     end)
-    |> Enum.reduce([9999, 0], fn current, [last, count] ->
-      if current > last do
-        [current, count + 1]
-      else
-        [current, count]
-      end
-    end)
-    |> Enum.at(-1)
-    |> IO.puts()
+    |> count_increases()
   end
 
   def run do
-    part1()
-    part2()
+    [part1(), part2()]
   end
 end

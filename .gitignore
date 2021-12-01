@@ -25,3 +25,6 @@ aoc2021-*.tar
 
 # Temporary files for e.g. tests
 /tmp
+
+.vscode
+.metals
