@@ -1,4 +1,6 @@
 defmodule Aoc2021.Day1 do
+  @measurements Aoc2021.Util.read_ints("day1.txt")
+
   def count_increases(measurements) do
     measurements
     |> Enum.reduce([:infinity, 0], fn current, [last, count] ->
@@ -12,21 +14,14 @@ defmodule Aoc2021.Day1 do
   end
 
   def part1 do
-    File.read!("inputs/day1.txt")
-    |> String.split("\n")
-    |> Enum.map(&(Integer.parse(&1) |> elem(0)))
+    @measurements
     |> count_increases()
   end
 
   def part2 do
-    measurements =
-      File.read!("inputs/day1.txt")
-      |> String.split("\n")
-      |> Enum.map(&(Integer.parse(&1) |> elem(0)))
-
-    0..(length(measurements) - 3)
+    0..(length(@measurements) - 3)
     |> Enum.map(fn window_start ->
-      Enum.slice(measurements, window_start..(window_start + 2))
+      Enum.slice(@measurements, window_start..(window_start + 2))
       |> Enum.sum()
     end)
     |> count_increases()
