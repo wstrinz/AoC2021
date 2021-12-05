@@ -7,44 +7,10 @@ defmodule Aoc2021.Day5 do
     [[startx, starty], [endx, endy]]
   end
 
-  def non_diagonal(line) do
+  def non_diagonal?(line) do
     [[startx, starty], [endx, endy]] = parse_line(line)
 
     startx == endx || starty == endy
-  end
-
-  def print_field(field) do
-    field
-    |> Enum.map(&Enum.join/1)
-    |> Enum.join("\n")
-    |> IO.puts()
-
-    IO.puts("\n")
-
-    field
-  end
-
-  def determine_bounds(input) do
-    input
-    |> Enum.reduce([0, 0], fn line, [maxx, maxy] ->
-      [[startx, starty], [endx, endy]] = parse_line(line)
-
-      newx =
-        if Enum.max([startx, endx]) > maxx do
-          Enum.max([startx, endx])
-        else
-          maxx
-        end
-
-      newy =
-        if Enum.max([starty, endy]) > maxy do
-          Enum.max([starty, endy])
-        else
-          maxx
-        end
-
-      [newx, newy]
-    end)
   end
 
   def points_between([[startx, starty], [endx, endy]]) do
@@ -79,12 +45,8 @@ defmodule Aoc2021.Day5 do
     end
   end
 
-  def mark_vent([x, y], field) do
-    row = Enum.at(field, y)
-    value = Enum.at(row, x)
-
-    field
-    |> List.replace_at(y, List.replace_at(row, x, value + 1))
+  def mark_vent(point, field) do
+    Map.update(field, point, 1, &(&1 + 1))
   end
 
   def mark_vents(line, field) do
@@ -95,37 +57,23 @@ defmodule Aoc2021.Day5 do
   end
 
   def part1(input) do
-    [maxx, maxy] = determine_bounds(input)
-    field = List.duplicate(List.duplicate(0, maxx + 1), maxy + 1)
-
     input
-    |> Enum.reduce(field, fn line, current_field ->
-      if non_diagonal(line) do
+    |> Enum.reduce(Map.new(), fn line, current_field ->
+      if non_diagonal?(line) do
         mark_vents(line, current_field)
       else
         current_field
       end
     end)
-    |> Enum.map(fn row ->
-      row
-      |> Enum.filter(&(&1 > 1))
-      |> Enum.count()
-    end)
-    |> Enum.sum()
+    |> Map.values()
+    |> Enum.count(&(&1 > 1))
   end
 
   def part2(input) do
-    [maxx, maxy] = determine_bounds(input)
-    field = List.duplicate(List.duplicate(0, maxx + 1), maxy + 1)
-
     input
-    |> Enum.reduce(field, &mark_vents/2)
-    |> Enum.map(fn row ->
-      row
-      |> Enum.filter(&(&1 > 1))
-      |> Enum.count()
-    end)
-    |> Enum.sum()
+    |> Enum.reduce(Map.new(), &mark_vents/2)
+    |> Map.values()
+    |> Enum.count(&(&1 > 1))
   end
 
   def run() do
