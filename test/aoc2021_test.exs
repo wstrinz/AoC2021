@@ -25,4 +25,8 @@ defmodule Aoc2021Test do
   test "day6" do
     assert Aoc2021.Day6.run() == [358_214, 1_622_533_344_325]
   end
+
+  test "day7" do
+    assert Aoc2021.Day7.run() == [355_764, 99_634_572]
+  end
 end
