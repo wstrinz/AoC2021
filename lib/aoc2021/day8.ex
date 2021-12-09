@@ -10,16 +10,16 @@ defmodule Aoc2021.Day8 do
     Map.keys(map) |> Enum.filter(&(String.length(&1) == len))
   end
 
-  def find_three(map) do
-    three_key =
-      candidates_with_length(map, 5)
+  def find_length_all_in(map, candidate_length, target_inclusion) do
+    target_key =
+      candidates_with_length(map, candidate_length)
       |> Enum.find(nil, fn key ->
-        Enum.all?(String.graphemes(find_key(map, 7)), fn letter ->
+        Enum.all?(String.graphemes(find_key(map, target_inclusion)), fn letter ->
           key =~ letter
         end)
       end)
 
-    Map.put(map, three_key, 3)
+    Map.put(map, target_key, 3)
   end
 
   def find_five(map) do
@@ -41,14 +41,14 @@ defmodule Aoc2021.Day8 do
     Map.put(map, five_key, 5)
   end
 
-  def find_two(map) do
-    two_key =
-      candidates_with_length(map, 5)
+  def find_remaining_unassigned(map, candidate_length, target_assignment) do
+    target_key =
+      candidates_with_length(map, candidate_length)
       |> Enum.find(nil, fn key ->
         Map.get(map, key) == "?"
       end)
 
-    Map.put(map, two_key, 2)
+    Map.put(map, target_key, target_assignment)
   end
 
   def find_six(map) do
@@ -89,9 +89,9 @@ defmodule Aoc2021.Day8 do
     |> Enum.reduce(%{}, fn signal_string, map ->
       Map.put(map, signal_string, simple_digit_for(signal_string))
     end)
-    |> find_three()
+    |> find_length_all_in(5, 7)
     |> find_five()
-    |> find_two()
+    |> find_remaining_unassigned(5, 2)
     |> find_six()
     |> find_zero()
     |> find_nine()
