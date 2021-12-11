@@ -149,7 +149,7 @@ defmodule Aoc2021.Day9 do
   end
 
   def run() do
-    input = File.read!("inputs/day9.txt") |> String.split("\n") |> Enum.map(&parse_ints/1)
+    input = Aoc2021.Util.read_int_grid("inputs/day9.txt")
 
     [part1(input), part2(input)]
   end
