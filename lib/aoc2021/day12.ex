@@ -79,9 +79,13 @@ defmodule Aoc2021.Day12 do
       |> Enum.map(fn double_cave ->
         Task.async(fn ->
           BiMultiMap.get(edges, "start")
-          |> Enum.reduce([], fn to, finished_paths ->
-            finished_paths ++ explore_path(["start", to], finished_paths, double_cave, edges)
+          |> Enum.map(fn to ->
+            Task.async(fn ->
+              explore_path(["start", to], [], double_cave, edges)
+            end)
           end)
+          |> Enum.map(&Task.await/1)
+          |> Enum.reduce(&++/2)
           |> Enum.uniq()
         end)
       end)
