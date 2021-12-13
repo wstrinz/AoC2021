@@ -13,57 +13,36 @@ defmodule Aoc2021.Day12 do
     location != "end" && String.downcase(location) == location
   end
 
-  def can_visit(path, cave, can_visit_small_twice) do
-    if can_visit_small_twice do
+  def can_visit(path, cave, visit_doubles_for) do
+    if visit_doubles_for do
       cave != "start" &&
         (!is_small_cave(cave) ||
            !Enum.member?(path, cave) ||
-           !Enum.any?(path, fn location ->
-             Enum.count(Enum.filter(path, &(&1 == location))) > 1
-           end))
+           (cave == visit_doubles_for && Enum.count(Enum.filter(path, &(&1 == cave))) < 2))
     else
       !(cave == "start" ||
           (is_small_cave(cave) && Enum.member?(path, cave)))
     end
   end
 
-  def explore_path(path, finished_paths, can_visit_small_twice, edges) do
+  def explore_path(path, finished_paths, visit_doubles_for, edges) do
     case Enum.at(path, -1) do
       "end" ->
-        # IO.inspect("found end")
-        # IO.inspect(path)
-        # IO.puts("\n")
         [path | finished_paths]
 
       location ->
-        # IO.inspect("path is")
-        # IO.inspect(path)
-
-        # IO.inspect("Checking #{location}")
-        # IO.inspect(BiMultiMap.get(edges, location))
-
         next_edges =
           BiMultiMap.get(edges, location, [])
           |> Enum.filter(fn next_location ->
-            can_visit(path, next_location, can_visit_small_twice)
+            can_visit(path, next_location, visit_doubles_for)
           end)
-
-        # IO.puts("next edges are")
-        # IO.inspect(next_edges)
 
         next_edges
         |> Enum.reduce(finished_paths, fn next_location, current_finished_paths ->
-          # IO.inspect("current path is")
-          # IO.inspect(path)
-
-          # IO.puts("Checking next")
-          # IO.inspect(next_location)
-          # IO.gets(:stdio, "paus")
-
           explore_path(
             path ++ [next_location],
             current_finished_paths,
-            can_visit_small_twice,
+            visit_doubles_for,
             edges
           )
         end)
@@ -75,7 +54,7 @@ defmodule Aoc2021.Day12 do
 
     BiMultiMap.get(edges, "start")
     |> Enum.reduce([], fn to, finished_paths ->
-      finished_paths ++ explore_path(["start", to], finished_paths, false, edges)
+      finished_paths ++ explore_path(["start", to], finished_paths, nil, edges)
     end)
     |> Enum.uniq()
     |> Enum.count()
@@ -84,10 +63,33 @@ defmodule Aoc2021.Day12 do
   def part2(input) do
     edges = parse_edges(input)
 
-    BiMultiMap.get(edges, "start")
-    |> Enum.reduce([], fn to, finished_paths ->
-      finished_paths ++ explore_path(["start", to], finished_paths, true, edges)
-    end)
+    small_caves =
+      BiMultiMap.keys(edges)
+      |> Enum.filter(&(&1 != "start" && &1 != "end" && String.downcase(&1) == &1))
+
+    base_paths =
+      BiMultiMap.get(edges, "start")
+      |> Enum.reduce([], fn to, finished_paths ->
+        finished_paths ++ explore_path(["start", to], finished_paths, nil, edges)
+      end)
+      |> Enum.uniq()
+
+    doubled_paths =
+      small_caves
+      |> Enum.map(fn double_cave ->
+        Task.async(fn ->
+          BiMultiMap.get(edges, "start")
+          |> Enum.reduce([], fn to, finished_paths ->
+            finished_paths ++ explore_path(["start", to], finished_paths, double_cave, edges)
+          end)
+          |> Enum.uniq()
+        end)
+      end)
+      |> Enum.map(&Task.await/1)
+      |> Enum.reduce(&++/2)
+      |> Enum.uniq()
+
+    (base_paths ++ doubled_paths)
     |> Enum.uniq()
     |> Enum.count()
   end
@@ -95,6 +97,6 @@ defmodule Aoc2021.Day12 do
   def run() do
     input = File.read!("inputs/day12.txt") |> String.split("\n")
 
-    [part1(input), part2(input)]
+    %{part1: part1(input), part2: part2(input)}
   end
 end
