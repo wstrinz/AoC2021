@@ -10,6 +10,6 @@ defmodule Aoc2021.DayTemplate do
   def run() do
     input = File.read!("inputs/dayTemplate.txt") |> String.split("\n")
 
-    [part1(input), part2(input)]
+    %{part1: part1(input), part2: part2(input)}
   end
 end
