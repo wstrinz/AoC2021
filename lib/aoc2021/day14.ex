@@ -43,109 +43,6 @@ defmodule Aoc2021.Day14 do
     max_count - min_count
   end
 
-  def gen_forties(%{sequence: original_sequence, rules: rules}) do
-    IO.puts("tens")
-
-    tens_seqs =
-      Map.keys(rules)
-      |> Enum.map(fn seq ->
-        Task.async(fn ->
-          result = gen_iterations(seq, rules, 10)
-          [seq, result, Enum.frequencies(result)]
-        end)
-      end)
-      |> Enum.map(&Task.await/1)
-      |> Enum.reduce(%{}, fn [seq, result, freqs], map ->
-        Map.put(map, seq, %{result: result, frequencies: freqs})
-      end)
-
-    IO.puts("twenties")
-
-    twenties_seqs =
-      tens_seqs
-      |> Enum.map(fn {seq, %{result: result, frequencies: _}} ->
-        Task.async(fn ->
-          next_result =
-            0..(length(result) - 2)
-            |> Enum.map(fn idx ->
-              [Enum.at(result, idx), Enum.at(result, idx + 1)]
-            end)
-            |> Enum.map(fn pair ->
-              Map.get(tens_seqs, pair) |> Map.get(:result)
-            end)
-            |> List.flatten()
-
-          [seq, next_result, Enum.frequencies(next_result)]
-        end)
-      end)
-      |> Enum.map(fn t -> Task.await(t, 15000) end)
-      |> Enum.with_index()
-      |> Enum.reduce(%{}, fn {[seq, result, freqs], idx}, map ->
-        IO.puts("reduce #{idx}")
-        Map.put(map, seq, %{result: Arrays.new(result), frequencies: freqs})
-      end)
-
-    IO.puts("forties")
-
-    # require IEx
-    # IEx.pry()
-
-    forties_freqs =
-      twenties_seqs
-      |> Enum.map(fn {seq, %{result: result, frequencies: _}} ->
-        IO.puts("Checking #{seq} of length #{Arrays.size(result)}")
-
-        next_results =
-          0..(Arrays.size(result) - 2)
-          |> Enum.map(fn idx ->
-            # if Integer.mod(idx, 100_000) == 0 do
-            #   IO.puts("pairing #{idx}")
-            # end
-
-            [Enum.at(result, idx), Enum.at(result, idx + 1)]
-          end)
-          |> Enum.with_index()
-          |> Enum.map(fn {pair, pair_idx} ->
-            if Integer.mod(pair_idx, 100_000) == 0 do
-              IO.puts(pair_idx)
-            end
-
-            Map.get(twenties_seqs, pair) |> Map.get(:frequencies)
-          end)
-
-        IO.puts("gonna count #{length(next_results)}")
-
-        freqs =
-          next_results
-          |> Enum.with_index()
-          |> Enum.reduce(%{}, fn {other_freqs, idx}, map ->
-            if Integer.mod(idx, 100_000) == 0 do
-              IO.puts("counting #{idx}")
-              # IO.inspect(map)
-            end
-
-            other_freqs
-            |> Enum.reduce(map, fn {freq_char, freq_val}, thismap ->
-              Map.update(thismap, freq_char, freq_val, &(&1 + freq_val))
-            end)
-          end)
-
-        [seq, freqs]
-      end)
-      |> Enum.reduce(%{}, fn [pair, freqs], map -> Map.put(map, pair, freqs) end)
-
-    0..(length(original_sequence) - 2)
-    |> Enum.map(fn idx ->
-      [Enum.at(original_sequence, idx), Enum.at(original_sequence, idx + 1)]
-    end)
-    |> Enum.reduce(%{}, fn pair, count_map ->
-      Map.get(forties_freqs, pair)
-      |> Enum.reduce(count_map, fn {freq_char, freq_val}, acc_map ->
-        Map.update(acc_map, freq_char, freq_val, &(&1 + freq_val))
-      end)
-    end)
-  end
-
   def sum_maps(maps) do
     maps
     |> Enum.reduce(%{}, fn map, accmap ->
@@ -156,7 +53,7 @@ defmodule Aoc2021.Day14 do
     end)
   end
 
-  def gen_from_map(seq, map) do
+  def gen_frequencies_from(seq, map) do
     0..(length(seq) - 2)
     |> Enum.map(fn idx ->
       [Enum.at(seq, idx), Enum.at(seq, idx + 1)]
@@ -303,7 +200,7 @@ defmodule Aoc2021.Day14 do
 
     IO.inspect(fours_freqs)
 
-    fs = gen_from_map(original_sequence, fours_freqs)
+    fs = gen_frequencies_from(original_sequence, fours_freqs)
 
     rs = gen_results_from_map(original_sequence, fours_seqs)
 
@@ -382,7 +279,7 @@ defmodule Aoc2021.Day14 do
       end)
       |> Enum.reduce(%{}, fn {pair, freqs}, map -> Map.put(map, pair, freqs) end)
 
-    letter_counts = gen_from_map(original_sequence, fourties_seqs)
+    letter_counts = gen_frequencies_from(original_sequence, fourties_seqs)
 
     {{_, min_count}, {_, max_count}} = letter_counts |> Enum.min_max_by(fn {_, v} -> v end)
 
