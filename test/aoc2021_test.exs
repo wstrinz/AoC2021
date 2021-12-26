@@ -62,4 +62,10 @@ defmodule Aoc2021Test do
 
     assert Aoc2021.Day13.run() == %{part1: 687, part2: String.trim(map_string)}
   end
+
+  # Too slow for now
+  @tag :skip
+  test "day14" do
+    assert Aoc2021.Day14.run() == %{part1: 5656, part2: 12_271_437_788_530}
+  end
 end

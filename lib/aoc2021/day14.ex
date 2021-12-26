@@ -144,18 +144,6 @@ defmodule Aoc2021.Day14 do
         Map.update(acc_map, freq_char, freq_val, &(&1 + freq_val))
       end)
     end)
-
-    # letter_counts =
-    #   0..39
-    #   |> Enum.reduce(sequence, fn n, current_sequence ->
-    #     IO.puts("Iteration #{n}")
-    #     next_sequence(current_sequence, rules)
-    #   end)
-    #   |> Enum.frequencies()
-
-    # {{_, min_count}, {_, max_count}} = letter_counts |> Enum.min_max_by(fn {_, v} -> v end)
-
-    # max_count - min_count
   end
 
   def sum_maps(maps) do
@@ -322,7 +310,7 @@ defmodule Aoc2021.Day14 do
     %{f: fs, r: Enum.join(rs)}
   end
 
-  def part2_gen(%{sequence: original_sequence, rules: rules}) do
+  def part2(%{sequence: original_sequence, rules: rules}) do
     IO.puts("tens")
 
     tens_seqs =
@@ -338,7 +326,7 @@ defmodule Aoc2021.Day14 do
         Map.put(map, seq, %{result: result, frequencies: freqs})
       end)
 
-    IO.puts("twenties #{map_size(tens_seqs)}")
+    IO.puts("twenties")
 
     twenties_seqs =
       tens_seqs
@@ -364,15 +352,11 @@ defmodule Aoc2021.Day14 do
       twenties_seqs
       |> Enum.with_index()
       |> Enum.map(fn {{seq, %{result: result, frequencies: _}}, overall_idx} ->
-        IO.puts("Checking seq #{overall_idx}")
-        # Task.async(fn ->
+        IO.puts("checking pair #{overall_idx}")
+
         next_freqs =
           0..(Arrays.size(result) - 2)
           |> Enum.map(fn idx ->
-            if Integer.mod(idx, 100_000) == 0 do
-              IO.puts("pairing #{idx}")
-            end
-
             [Enum.at(result, idx), Enum.at(result, idx + 1)]
           end)
           |> Enum.map(fn pair ->
@@ -392,22 +376,20 @@ defmodule Aoc2021.Day14 do
           |> sum_maps()
 
         [seq, next_freqs]
-        # end)
       end)
-      # |> Enum.map(fn t -> Task.await(t, 60000) end)
-      |> Enum.with_index()
-      |> Enum.reduce(%{}, fn {[seq, freqs], idx}, map ->
-        IO.puts("reduce #{idx}")
+      |> Enum.reduce(%{}, fn [seq, freqs], map ->
         Map.put(map, seq, freqs)
       end)
       |> Enum.reduce(%{}, fn {pair, freqs}, map -> Map.put(map, pair, freqs) end)
 
-    fs = gen_from_map(original_sequence, fourties_seqs)
+    letter_counts = gen_from_map(original_sequence, fourties_seqs)
 
-    fs
+    {{_, min_count}, {_, max_count}} = letter_counts |> Enum.min_max_by(fn {_, v} -> v end)
+
+    max_count - min_count
   end
 
-  def part2(_) do
+  def part2_skip_gen(_) do
     letter_counts = %{
       "B" => 211_999_150_163,
       "C" => 422_415_532_942,
@@ -426,27 +408,9 @@ defmodule Aoc2021.Day14 do
     max_count - min_count
   end
 
-  def part2_exp(%{sequence: sequence, rules: rules}) do
-    tens_seqs =
-      Map.keys(rules)
-      |> Enum.map(fn seq ->
-        Task.async(fn ->
-          result = gen_iterations(seq, rules, 10)
-          [seq, result, Enum.frequencies(result)]
-        end)
-      end)
-      |> Enum.map(&Task.await/1)
-      |> Enum.reduce(%{}, fn [seq, result, freqs], map ->
-        Map.put(map, seq, %{result: result, frequencies: freqs})
-      end)
-
-    {_, first_seq_results} = Enum.at(tens_seqs, 0)
-  end
-
   def run() do
     rules = File.read!("inputs/day14.txt") |> parse_rules()
 
-    # %{part1: part1(rules), part2: part2(rules)}
-    part2(rules)
+    %{part1: part1(rules), part2: part2(rules)}
   end
 end
