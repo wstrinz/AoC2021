@@ -95,119 +95,74 @@ defmodule Aoc2021.Day14 do
     |> List.flatten()
   end
 
-  def part2_fours(%{sequence: original_sequence, rules: rules}) do
-    IO.puts("fives")
+  def cached_generate_sequence(sequence, rules, sequence_cache) do
+    # IO.puts("check")
+    IO.inspect(sequence)
 
-    ones_seqs =
-      Map.keys(rules)
-      |> Enum.map(fn seq ->
-        Task.async(fn ->
-          result = gen_iterations(seq, rules, 1)
-          [seq, result, Enum.frequencies(result)]
-        end)
-      end)
-      |> Enum.map(&Task.await/1)
-      |> Enum.reduce(%{}, fn [seq, result, freqs], map ->
-        Map.put(map, seq, %{result: result, frequencies: freqs})
-      end)
+    case :ets.lookup(sequence_cache, sequence) do
+      [{_, subsequence}] ->
+        IO.puts("cache_hit")
 
-    IO.puts("tens")
+        subsequence
 
-    twos_seqs =
-      ones_seqs
-      |> Enum.map(fn {seq, %{result: result, frequencies: _}} ->
-        Task.async(fn ->
-          # 0..(length(result) - 2)
-          # |> Enum.map(fn idx ->
-          #   [Enum.at(result, idx), Enum.at(result, idx + 1)]
+      _ ->
+        IO.puts("cache_miss")
+
+        case length(sequence) do
+          1 ->
+            gen_iterations(Enum.at(sequence, 0), rules, 1)
+
+          2 ->
+            # IO.inspect(sequence)
+
+            {gen_head, gen_tail} = Enum.split(sequence, 1)
+
+            next_seq_head = cached_generate_sequence(gen_head, rules, sequence_cache)
+
+            [_ | next_seq_tail] = cached_generate_sequence(gen_tail, rules, sequence_cache)
+
+            [next_seq_head, next_seq_tail]
+
+          # [gen_head, gen_tail]
+          # |> Enum.map(fn sub_seq ->
+          #   result = cached_generate_sequence(sub_seq, rules, sequence_cache)
+
+          #   IO.inspect(sub_seq)
+          #   IO.inspect(result)
+          #   :ets.insert(sequence_cache, {sub_seq, result})
+
+          #   result
           # end)
-          # |> Enum.map(fn pair ->
-          #   Map.get(ones_seqs, pair) |> Map.get(:result)
-          # end)
-          next_result =
-            gen_results_from_map(result, ones_seqs)
-            |> List.flatten()
+          # |> List.flatten()
 
-          [seq, next_result, Enum.frequencies(next_result)]
-        end)
-      end)
-      |> Enum.map(fn t -> Task.await(t, 60000) end)
-      |> Enum.with_index()
-      |> Enum.reduce(%{}, fn {[seq, result, freqs], idx}, map ->
-        Map.put(map, seq, %{frequencies: freqs, result: result})
-      end)
+          _ ->
+            # IO.inspect(sequence)
 
-    fours_seqs =
-      twos_seqs
-      |> Enum.map(fn {seq, %{result: result, frequencies: _}} ->
-        Task.async(fn ->
-          # 0..(length(result) - 2)
-          # |> Enum.map(fn idx ->
-          #   [Enum.at(result, idx), Enum.at(result, idx + 1)]
-          # end)
-          # |> Enum.map(fn pair ->
-          #   Map.get(ones_seqs, pair) |> Map.get(:result)
-          # end)
-          next_result =
-            gen_results_from_map(result, twos_seqs)
-            |> List.flatten()
+            {gen_head, gen_tail} = Enum.split(sequence, 2)
 
-          [seq, next_result, Enum.frequencies(next_result)]
-        end)
-      end)
-      |> Enum.map(fn t -> Task.await(t, 60000) end)
-      |> Enum.with_index()
-      |> Enum.reduce(%{}, fn {[seq, result, freqs], idx}, map ->
-        IO.puts("reduce #{idx}")
-        Map.put(map, seq, %{frequencies: freqs, result: result})
-      end)
+            next_seq_head = cached_generate_sequence(gen_head, rules, sequence_cache)
 
-    fours_freqs =
-      twos_seqs
-      |> Enum.map(fn {seq, %{result: result, frequencies: _}} ->
-        Task.async(fn ->
-          next_freqs =
-            0..(length(result) - 2)
-            |> Enum.map(fn idx ->
-              [Enum.at(result, idx), Enum.at(result, idx + 1)]
-            end)
-            |> Enum.map(fn pair ->
-              fs = Map.get(twos_seqs, pair) |> Map.get(:frequencies)
-              firstl = Map.get(twos_seqs, pair) |> Map.get(:result) |> Enum.at(0)
+            [_ | next_seq_tail] = cached_generate_sequence(gen_tail, rules, sequence_cache)
 
-              %{frequencies: fs, mod_freqs: Map.update!(fs, firstl, &(&1 - 1))}
-            end)
-            |> Enum.with_index()
-            |> Enum.map(fn {fs, idx} ->
-              if idx == 0 do
-                Map.get(fs, :frequencies)
-              else
-                Map.get(fs, :mod_freqs)
-              end
-            end)
-            |> sum_maps()
+            List.flatten([next_seq_head, next_seq_tail])
+            # IO.inspect(sequence)
 
-          [seq, next_freqs]
-        end)
-      end)
-      |> Enum.map(fn t -> Task.await(t, 60000) end)
-      |> Enum.with_index()
-      |> Enum.reduce(%{}, fn {[seq, freqs], idx}, map ->
-        IO.puts("reduce #{idx}")
-        Map.put(map, seq, freqs)
-      end)
-      |> Enum.reduce(%{}, fn {pair, freqs}, map -> Map.put(map, pair, freqs) end)
+            # {gen_head, gen_tail} = Enum.split(sequence, 2)
 
-    IO.inspect(fours_freqs)
+            # [gen_head, gen_tail]
+            # |> Enum.map(fn sub_seq ->
+            #   result = cached_generate_sequence(sub_seq, rules, sequence_cache)
 
-    fs = gen_frequencies_from(original_sequence, fours_freqs)
+            #   :ets.insert(sequence_cache, {sub_seq, result})
 
-    rs = gen_results_from_map(original_sequence, fours_seqs)
-
-    %{f: fs, r: Enum.join(rs)}
+            #   result
+            # end)
+            # |> List.flatten()
+        end
+    end
   end
 
-  def part2(%{sequence: original_sequence, rules: rules}) do
+  def part2_slow(%{sequence: original_sequence, rules: rules}) do
     IO.puts("tens")
 
     tens_seqs =
@@ -305,9 +260,30 @@ defmodule Aoc2021.Day14 do
     max_count - min_count
   end
 
+  def part2(%{sequence: original_sequence, rules: rules}) do
+    cache = :ets.new(:sequence_cache, [:set])
+
+    start_pairs =
+      0..(length(original_sequence) - 2)
+      |> Enum.map(fn idx ->
+        [Enum.at(original_sequence, idx), Enum.at(original_sequence, idx + 1)]
+      end)
+
+    next_seq = cached_generate_sequence(start_pairs, rules, cache)
+
+    next_pairs =
+      0..(length(next_seq) - 2)
+      |> Enum.map(fn idx ->
+        [Enum.at(next_seq, idx), Enum.at(next_seq, idx + 1)]
+      end)
+
+    cached_generate_sequence(next_pairs, rules, cache)
+  end
+
   def run() do
     rules = File.read!("inputs/day14.txt") |> parse_rules()
 
-    %{part1: part1(rules), part2: part2(rules)}
+    part2(rules)
+    # %{part1: part1(rules), part2: part2(rules)}
   end
 end
