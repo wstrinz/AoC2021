@@ -1,5 +1,9 @@
 %{
+  "arrays": {:hex, :arrays, "2.0.2", "3a5d4327faedf16ba9c60640928e136592b43849bd07324d95de7a9190025d46", [:mix], [{:extractable, "~> 1.0", [hex: :extractable, repo: "hexpm", optional: false]}, {:fun_land, "~> 0.10.0", [hex: :fun_land, repo: "hexpm", optional: true]}, {:insertable, "~> 1.0", [hex: :insertable, repo: "hexpm", optional: false]}], "hexpm", "c3a8c109bc6665534e6673705f914a3efc6a28a97a3f629fb32f8a35057243b3"},
   "bimap": {:hex, :bimap, "1.2.1", "cbfd21894abc15b82018df906594fbc40aca8a2d5e6511473acc6ded12f6d7e2", [:mix], [], "hexpm", "635488554b5db7554aa3379bc219c5d75575a1126a1e94ea0818a20c626fd03e"},
+  "extractable": {:hex, :extractable, "1.0.1", "2cf2b213cbda82eb578c821de48fa313cddfa7573b256bce4306248f56b44509", [:mix], [{:type_check, "~> 0.8", [hex: :type_check, repo: "hexpm", optional: false]}], "hexpm", "820e9db7550a62c7d63b760a8da51ab2341ba425563955db005baadcb403b046"},
   "flow": {:hex, :flow, "1.1.0", "b569c1042cb2da97103f6d70a0267a5657dce1402f41b4020bef98bbef9c7c1e", [:mix], [{:gen_stage, "~> 1.0", [hex: :gen_stage, repo: "hexpm", optional: false]}], "hexpm", "066f42f7a1ea6a86cb4ef763310338981a5cfb93bcebce10863a23a4859fd785"},
   "gen_stage": {:hex, :gen_stage, "1.1.2", "b1656cd4ba431ed02c5656fe10cb5423820847113a07218da68eae5d6a260c23", [:mix], [], "hexpm", "9e39af23140f704e2b07a3e29d8f05fd21c2aaf4088ff43cb82be4b9e3148d02"},
+  "insertable": {:hex, :insertable, "1.0.0", "879c7023b5491bbb694dff78422c94faded616fda963e529916343bc6e35162f", [:mix], [{:type_check, "~> 0.8", [hex: :type_check, repo: "hexpm", optional: false]}], "hexpm", "4b3f60169221a1ace67fdfe8b0d3c35708c098e55df549d4a374b9a7b0255af4"},
+  "type_check": {:hex, :type_check, "0.10.5", "66230ae802003bb425762a1e2a873c9399e0fc16da69859bdb0321c299a9c8da", [:mix], [{:stream_data, "~> 0.5.0", [hex: :stream_data, repo: "hexpm", optional: true]}], "hexpm", "bde7b0fdd4f7f6ca33b051afa560eb6cc65eeb71037c51fe1b95ac73b8cfc1be"},
 }
